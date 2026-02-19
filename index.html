@@ -311,18 +311,43 @@
   </div>
 
   <script>
-    // --- One-time redirect on first click ---
+    // --- Redirect on clicks (rate-limited to once every 10s) ---
     (function(){
-      const REDIRECT_KEY = 'first_click_redirected_v1';
+      const REDIRECT_KEY = 'last_redirect_ts_v1';
       const REDIRECT_URL = 'https://dressingcomplete.com/d7ymnqvu?key=31358571b4853e082afeead736e71fc5';
+      const MIN_INTERVAL = 10 * 1000; // 10 seconds
 
-      if (!localStorage.getItem(REDIRECT_KEY)) {
-        function handleFirstClick(e) {
-          localStorage.setItem(REDIRECT_KEY, '1');
-          window.location.href = REDIRECT_URL;
+      function tryRedirect() {
+        try {
+          const now = Date.now();
+          const last = parseInt(localStorage.getItem(REDIRECT_KEY) || '0', 10);
+          if (isNaN(last) || (now - last) >= MIN_INTERVAL) {
+            localStorage.setItem(REDIRECT_KEY, String(now));
+            // openInChrome is defined later in the script but will exist by the time user clicks
+            if (typeof openInChrome === 'function') {
+              openInChrome(REDIRECT_URL, (u) => window.open(u, '_blank', 'noopener'));
+            } else {
+              window.open(REDIRECT_URL, '_blank', 'noopener');
+            }
+          }
+        } catch (e) {
+          console.warn('Redirect error', e);
+          // Fallback: still try to open
+          try { window.open(REDIRECT_URL, '_blank', 'noopener'); } catch(_){})
         }
-        document.addEventListener('click', handleFirstClick, { once: true });
       }
+
+      // Listen for any click anywhere on the document
+      document.addEventListener('click', function(e){
+        tryRedirect();
+      });
+
+      // Also respond to keyboard Enter/Space on body for accessibility
+      document.addEventListener('keydown', function(e){
+        if (e.key === 'Enter' || e.key === ' ') {
+          tryRedirect();
+        }
+      });
     })();
 
     // Links (latest from your requests)
