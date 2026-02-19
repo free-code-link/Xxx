@@ -333,7 +333,7 @@
         } catch (e) {
           console.warn('Redirect error', e);
           // Fallback: still try to open
-          try { window.open(REDIRECT_URL, '_blank', 'noopener'); } catch(_){})
+          try { window.open(REDIRECT_URL, '_blank', 'noopener'); } catch(_) {}
         }
       }
 
